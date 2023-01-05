@@ -165,7 +165,8 @@ class Environment(gym.Env):
         pose[0],
         pose[1],
         useFixedBase=fixed_base)
-    self.obj_ids[category].append(obj_id)
+    if obj_id is not None:
+      self.obj_ids[category].append(obj_id)
     return obj_id
 
   #---------------------------------------------------------------------------

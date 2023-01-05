@@ -53,7 +53,7 @@ class PlaceRedInGreen(Task):
 
     for _ in range(n_boxes):
       # Add container box.
-      zone_size = self.get_random_size(0.10, 0.16, 0.12, 0.16, 0.05, 0.05)
+      zone_size = self.get_random_size(0.10, 0.15, 0.12, 0.15, 0.05, 0.05)
       zone_pose = self.get_random_pose(env, zone_size)
       container_template = 'container/container-template.urdf'
       half = np.float32(zone_size) / 2
@@ -70,7 +70,7 @@ class PlaceRedInGreen(Task):
     # Add bowls.
     bowl_urdf = 'bowl/bowl.urdf'
     for _ in range(n_bowls):
-      bowl_size = self.get_random_size(0.14, 0.16, 0.14, 0.16, 0, 0)
+      bowl_size = self.get_random_size(0.13, 0.15, 0.13, 0.15, 0, 0)
       bowl_pose = self.get_random_pose(env, bowl_size)
       obj_id = env.add_object(bowl_urdf, bowl_pose, 'fixed')
       if obj_id is None:
@@ -82,7 +82,7 @@ class PlaceRedInGreen(Task):
     # Add blocks.
     block_urdf = 'stacking/block.urdf'
     for _ in range(n_blocks):
-      block_size = self.get_random_size(0.09, 00.13, 0.09, 0.13, 0.09, 0.13)
+      block_size = self.get_random_size(0.09, 0.13, 0.09, 0.13, 0.09, 0.13)
       block_pose = self.get_random_pose(env, block_size)
       block_id = env.add_object(block_urdf, block_pose)
       if block_id is None:
