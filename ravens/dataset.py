@@ -44,7 +44,7 @@ class Dataset:
     self.n_episodes = 0
 
     # Track existing dataset if it exists.
-    color_path = os.path.join(self.path, 'action')
+    color_path = os.path.join(self.path, 'color')
     if tf.io.gfile.exists(color_path):
       for fname in sorted(tf.io.gfile.listdir(color_path)):
         if '.pkl' in fname:
@@ -61,16 +61,18 @@ class Dataset:
       seed: random seed used to initialize the episode.
       episode: list of (obs, act, reward, info) tuples.
     """
-    color, depth, action, reward, info = [], [], [], [], []
+    color, depth, segm, action, reward, info = [], [], [], [], [], []
     for obs, act, r, i in episode:
       color.append(obs['color'])
-      depth.append(obs['depth'])
-      action.append(act)
-      reward.append(r)
-      info.append(i)
+      # depth.append(obs['depth'])
+      segm.append(obs["segm"])
+      # action.append(act)
+      # reward.append(r)
+      # info.append(i)
 
     color = np.uint8(color)
     depth = np.float32(depth)
+    segm = np.uint8(segm)
 
     def dump(data, field):
       field_path = os.path.join(self.path, field)
@@ -81,10 +83,11 @@ class Dataset:
         pickle.dump(data, f)
 
     dump(color, 'color')
-    dump(depth, 'depth')
-    dump(action, 'action')
-    dump(reward, 'reward')
-    dump(info, 'info')
+    # dump(depth, 'depth')
+    dump(segm, 'segm')
+    # dump(action, 'action')
+    # dump(reward, 'reward')
+    # dump(info, 'info')
 
     self.n_episodes += 1
     self.max_seed = max(self.max_seed, seed)
@@ -125,23 +128,24 @@ class Dataset:
 
     # Get filename and random seed used to initialize episode.
     seed = None
-    path = os.path.join(self.path, 'action')
+    path = os.path.join(self.path, 'color')
     for fname in sorted(tf.io.gfile.listdir(path)):
       if f'{episode_id:06d}' in fname:
         seed = int(fname[(fname.find('-') + 1):-4])
 
         # Load data.
         color = load_field(episode_id, 'color', fname)
-        depth = load_field(episode_id, 'depth', fname)
-        action = load_field(episode_id, 'action', fname)
-        reward = load_field(episode_id, 'reward', fname)
-        info = load_field(episode_id, 'info', fname)
+        # depth = load_field(episode_id, 'depth', fname)
+        segm = load_field(episode_id, 'segm', fname)
+        # action = load_field(episode_id, 'action', fname)
+        # reward = load_field(episode_id, 'reward', fname)
+        # info = load_field(episode_id, 'info', fname)
 
         # Reconstruct episode.
         episode = []
-        for i in range(len(action)):
-          obs = {'color': color[i], 'depth': depth[i]} if images else {}
-          episode.append((obs, action[i], reward[i], info[i]))
+        for i in range(1):
+          obs = {'color': color[i], 'segm': segm[i]} if images else {}
+          episode.append(obs)
         return episode, seed
 
   def sample(self, images=True, cache=False):
@@ -164,6 +168,6 @@ class Dataset:
     episode, _ = self.load(episode_id, images, cache)
 
     # Return random observation action pair (and goal) from episode.
-    i = np.random.choice(range(len(episode) - 1))
-    sample, goal = episode[i], episode[-1]
-    return sample, goal
+    #np.random.choice(range(len(episode) - 1))
+    sample = episode[0]
+    return sample

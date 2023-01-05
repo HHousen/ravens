@@ -15,6 +15,8 @@
 
 """Sorting Task."""
 
+import os
+import random
 import numpy as np
 from ravens.tasks.task import Task
 from ravens.utils import utils
@@ -32,46 +34,52 @@ class PlaceRedInGreen(Task):
 
   def reset(self, env):
     super().reset(env)
-    n_bowls = np.random.randint(1, 4)
-    n_blocks = np.random.randint(1, n_bowls + 1)
+    num_total_objects = np.random.randint(3, 9)
+    num_objects = [0] * 3
+    for _ in range(num_total_objects):
+      idx = np.random.randint(0, 3)
+      num_objects[idx] += 1
+    n_bowls = num_objects[0]
+    n_blocks = num_objects[1]
+    n_boxes = num_objects[2]
+    if n_boxes > 2:
+      left_over = n_boxes - 2
+      n_boxes = 2
+      split = left_over // 2
+      n_blocks += split
+      n_bowls += split
+      if left_over % 2 != 0:
+        n_blocks += 1
+
+    for _ in range(n_boxes):
+      # Add container box.
+      zone_size = self.get_random_size(0.10, 0.16, 0.12, 0.16, 0.05, 0.05)
+      zone_pose = self.get_random_pose(env, zone_size)
+      container_template = 'container/container-template.urdf'
+      half = np.float32(zone_size) / 2
+      replace = {'DIM': zone_size, 'HALF': half}
+      container_urdf = self.fill_template(container_template, replace)
+      obj_id = env.add_object(container_urdf, zone_pose, 'fixed')
+      color = random.choice(list(utils.COLORS.values()))
+      p.changeVisualShape(obj_id, -1, rgbaColor=color + [1])
+      os.remove(container_urdf)
 
     # Add bowls.
-    bowl_size = (0.12, 0.12, 0)
     bowl_urdf = 'bowl/bowl.urdf'
-    bowl_poses = []
     for _ in range(n_bowls):
+      bowl_size = self.get_random_size(0.14, 0.16, 0.14, 0.16, 0, 0)
       bowl_pose = self.get_random_pose(env, bowl_size)
-      env.add_object(bowl_urdf, bowl_pose, 'fixed')
-      bowl_poses.append(bowl_pose)
+      obj_id = env.add_object(bowl_urdf, bowl_pose, 'fixed')
+      color = random.choice(list(utils.COLORS.values()))
+      p.changeVisualShape(obj_id, -1, rgbaColor=color + [1])
 
     # Add blocks.
-    blocks = []
-    block_size = (0.04, 0.04, 0.04)
     block_urdf = 'stacking/block.urdf'
     for _ in range(n_blocks):
+      block_size = self.get_random_size(0.09, 00.13, 0.09, 0.13, 0.09, 0.13)
       block_pose = self.get_random_pose(env, block_size)
       block_id = env.add_object(block_urdf, block_pose)
-      blocks.append((block_id, (0, None)))
+      color = random.choice(list(utils.COLORS.values()))
+      p.changeVisualShape(block_id, -1, rgbaColor=color + [1])
 
-    # Goal: each red block is in a different green bowl.
-    self.goals.append((blocks, np.ones((len(blocks), len(bowl_poses))),
-                       bowl_poses, False, True, 'pose', None, 1))
-
-    # Colors of distractor objects.
-    bowl_colors = [utils.COLORS[c] for c in utils.COLORS if c != 'green']
-    block_colors = [utils.COLORS[c] for c in utils.COLORS if c != 'red']
-
-    # Add distractors.
-    n_distractors = 0
-    while n_distractors < 10:
-      is_block = np.random.rand() > 0.5
-      urdf = block_urdf if is_block else bowl_urdf
-      size = block_size if is_block else bowl_size
-      colors = block_colors if is_block else bowl_colors
-      pose = self.get_random_pose(env, size)
-      if not pose[0] or not pose[1]:
-        continue
-      obj_id = env.add_object(urdf, pose)
-      color = colors[n_distractors % len(colors)]
-      p.changeVisualShape(obj_id, -1, rgbaColor=color + [1])
-      n_distractors += 1
+    return num_total_objects

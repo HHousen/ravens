@@ -16,6 +16,9 @@
 """Data collection script."""
 
 import os
+import random
+import h5py
+from tqdm import tqdm
 
 from absl import app
 from absl import flags
@@ -67,29 +70,30 @@ def main(unused_argv):
     max_steps *= (FLAGS.steps_per_seg * agent.num_poses)
 
   # Collect training data from oracle demonstrations.
-  while dataset.n_episodes < FLAGS.n:
-    print(f'Oracle demonstration: {dataset.n_episodes + 1}/{FLAGS.n}')
-    episode, total_reward = [], 0
-    seed += 2
-    np.random.seed(seed)
-    env.set_task(task)
-    obs = env.reset()
-    info = None
-    reward = 0
-    for _ in range(max_steps):
-      act = agent.act(obs, info)
-      episode.append((obs, act, reward, info))
-      obs, reward, done, info = env.step(act)
-      total_reward += reward
-      print(f'Total Reward: {total_reward} Done: {done}')
-      if done:
-        break
-    episode.append((obs, None, reward, info))
+  with h5py.File("raven_robot_data.h5", "w") as f:
+    for idx in tqdm(range(FLAGS.n)):
+      seed += 2
+      np.random.seed(seed)
+      random.seed(seed)
+      env.set_task(task)
+      obs, num_objects_on_table = env.reset()
+      color = np.array(obs["color"])
+      segm = np.array(obs["segm"])
+      entry = {"color": color, "segm": segm, "num_objects_on_table": np.array([num_objects_on_table])}
 
-    # Only save completed demonstrations.
-    # TODO(andyzeng): add back deformable logic.
-    if total_reward > 0.99:
-      dataset.add(seed, episode)
+      for key, value in entry.items():
+        if idx == 0:
+          f.create_dataset(
+              key,
+              data=value,
+              dtype=value.dtype,
+              maxshape=(None, *value.shape[1:]),
+              compression="gzip",
+              chunks=True,
+          )
+        else:
+          f[key].resize((f[key].shape[0] + value.shape[0]), axis=0)
+          f[key][-value.shape[0] :] = value
 
 if __name__ == '__main__':
   app.run(main)

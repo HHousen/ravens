@@ -213,13 +213,13 @@ class Environment(gym.Env):
     self.ee.release()
 
     # Reset task.
-    self.task.reset(self)
+    num_objects_on_table = self.task.reset(self)
 
     # Re-enable rendering.
     p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
 
     obs, _, _, _ = self.step()
-    return obs
+    return obs, num_objects_on_table
 
   def step(self, action=None):
     """Execute action with specified primitive.
@@ -397,11 +397,12 @@ class Environment(gym.Env):
 
   def _get_obs(self):
     # Get RGB-D camera image observations.
-    obs = {'color': (), 'depth': ()}
+    obs = {'color': (), 'depth': (), 'segm': ()}
     for config in self.agent_cams:
-      color, depth, _ = self.render_camera(config)
+      color, depth, segm = self.render_camera(config)
       obs['color'] += (color,)
       obs['depth'] += (depth,)
+      obs['segm'] += (segm,)
 
     return obs
 
