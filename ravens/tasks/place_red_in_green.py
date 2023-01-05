@@ -60,6 +60,9 @@ class PlaceRedInGreen(Task):
       replace = {'DIM': zone_size, 'HALF': half}
       container_urdf = self.fill_template(container_template, replace)
       obj_id = env.add_object(container_urdf, zone_pose, 'fixed')
+      if obj_id is None:
+        num_total_objects -= 1
+        continue
       color = random.choice(list(utils.COLORS.values()))
       p.changeVisualShape(obj_id, -1, rgbaColor=color + [1])
       os.remove(container_urdf)
@@ -70,6 +73,9 @@ class PlaceRedInGreen(Task):
       bowl_size = self.get_random_size(0.14, 0.16, 0.14, 0.16, 0, 0)
       bowl_pose = self.get_random_pose(env, bowl_size)
       obj_id = env.add_object(bowl_urdf, bowl_pose, 'fixed')
+      if obj_id is None:
+        num_total_objects -= 1
+        continue
       color = random.choice(list(utils.COLORS.values()))
       p.changeVisualShape(obj_id, -1, rgbaColor=color + [1])
 
@@ -79,6 +85,9 @@ class PlaceRedInGreen(Task):
       block_size = self.get_random_size(0.09, 00.13, 0.09, 0.13, 0.09, 0.13)
       block_pose = self.get_random_pose(env, block_size)
       block_id = env.add_object(block_urdf, block_pose)
+      if block_id is None:
+        num_total_objects -= 1
+        continue
       color = random.choice(list(utils.COLORS.values()))
       p.changeVisualShape(block_id, -1, rgbaColor=color + [1])
 
