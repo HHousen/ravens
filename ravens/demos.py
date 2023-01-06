@@ -39,6 +39,7 @@ flags.DEFINE_string('mode', 'train', '')
 flags.DEFINE_integer('n', 1000, '')
 flags.DEFINE_bool('continuous', False, '')
 flags.DEFINE_integer('steps_per_seg', 3, '')
+flags.DEFINE_integer('start_seed', -2, '')
 
 FLAGS = flags.FLAGS
 
@@ -59,8 +60,8 @@ def main(unused_argv):
   agent = task.oracle(env, steps_per_seg=FLAGS.steps_per_seg)
   dataset = Dataset(os.path.join(FLAGS.data_dir, f'{FLAGS.task}-{task.mode}'))
 
+  seed = FLAGS.start_seed
   # Train seeds are even and test seeds are odd.
-  seed = dataset.max_seed
   if seed < 0:
     seed = -1 if (task.mode == 'test') else -2
 
@@ -70,9 +71,11 @@ def main(unused_argv):
     max_steps *= (FLAGS.steps_per_seg * agent.num_poses)
 
   # Collect training data from oracle demonstrations.
-  with h5py.File("ravens_robot_data.h5", "w") as f:
-    for idx in tqdm(range(FLAGS.n)):
+  with h5py.File(f"ravens_robot_data_{FLAGS.start_seed+2}.h5", "w") as f:
+    pbar = tqdm(range(FLAGS.n))
+    for idx in pbar:
       seed += 2
+      pbar.set_postfix({"Last Seed": seed}, refresh=False)
       np.random.seed(seed)
       random.seed(seed)
       env.set_task(task)
