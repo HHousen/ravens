@@ -71,7 +71,7 @@ def main(unused_argv):
     max_steps *= (FLAGS.steps_per_seg * agent.num_poses)
 
   # Collect training data from oracle demonstrations.
-  with h5py.File(f"ravens_robot_data_{FLAGS.start_seed+2}.h5", "w") as f:
+  with h5py.File(f"ravens_robot_data_{FLAGS.mode}_{FLAGS.start_seed+2}.h5", "w") as f:
     pbar = tqdm(range(FLAGS.n))
     for idx in pbar:
       seed += 2
