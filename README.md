@@ -31,3 +31,11 @@ pip install -e .
 Generate the dataset by running `python ravens/demos.py --assets_root=./ravens/environments/assets/ --task=place-red-in-green --mode=train --n=70000`. This will create a h5py file called `raven_robot_data.h5` with the datasets color (image data), segm (segmentation maps), and num_objects_on_table (number of objects present on the table in the image).
 
 The `preview_dataset.py` script will cycle though the images in the generated `raven_robot_data.h5` dataset file using matplotlib.
+
+### Exact Commands
+
+1. Training Data (first chunk): `python ravens/demos.py --assets_root=./ravens/environments/assets/ --task=place-red-in-green --mode=train --start_seed=-2 --n=11667`.
+2. Training Data (second chunk): `python ravens/demos.py --assets_root=./ravens/environments/assets/ --task=place-red-in-green --mode=train --start_seed=23332 --n=11667`.
+3. Evaluation/Test Data: `python ravens/demos.py --assets_root=./ravens/environments/assets/ --task=place-red-in-green --mode=test --start_seed=-1 --n=5000`.
+4. Merge Training Data Chunk: `python merge.py`.
+5. Rename: `mv ravens_robot_data_train_0.h5 ravens_robot_data_train.h5 && mv ravens_robot_data_test_1.h5 ravens_robot_data_test.h5`.
