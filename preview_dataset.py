@@ -2,7 +2,7 @@ from ravens.dataset import Dataset
 from matplotlib import pyplot as plt
 import h5py
 
-with h5py.File("raven_robot_data.h5", "r") as f:
+with h5py.File("test_data.h5", "r") as f:
     for i in range(0, 10*3, 3):
         image = f["color"][i]
         plt.imshow(image, interpolation='nearest')
